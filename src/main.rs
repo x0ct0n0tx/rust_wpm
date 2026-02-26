@@ -5,7 +5,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use crossterm::event::{self, Event, KeyCode};
+use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use ratatui::{
     backend::CrosstermBackend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
@@ -165,23 +165,25 @@ fn run_typing_test(
         // Input handling
         if event::poll(Duration::from_millis(100))? {
             if let Event::Key(key) = event::read()? {
-                match key.code {
-                    KeyCode::Char(c) => {
-                        if start_time.is_none() {
-                            start_time = Some(Instant::now());
+                // Adjustment made here for Windows input errors when typing; double typing on single key press
+                if key.kind == KeyEventKind::Press{
+                    match key.code {
+                        KeyCode::Char(c) => {
+                            if start_time.is_none() {
+                                start_time = Some(Instant::now());
+                            }
+                            typed.push(c);
                         }
-                        typed.push(c);
+                        KeyCode::Backspace => {
+                            typed.pop();
+                        }
+                        KeyCode::Esc | KeyCode::Enter => break,
+                        _ => {}
                     }
-                    KeyCode::Backspace => {
-                        typed.pop();
-                    }
-                    KeyCode::Esc | KeyCode::Enter => break,
-                    _ => {}
                 }
             }
         }
     }
-
     // Results
     let (final_wpm, final_accuracy) = if let Some(start) = start_time {
         let elapsed_minutes = start.elapsed().as_secs_f64() / 60.0;
