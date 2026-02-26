@@ -1,0 +1,9 @@
+[package]
+name = "rust_wpm"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+crossterm = "0.29.0"
+ratatui = "0.30.0"     #TUI library
+chrono = "0.4.44"       #timing
